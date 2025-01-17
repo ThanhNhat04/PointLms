@@ -1,3 +1,4 @@
+'use client'
 import React from 'react';
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Button, IconButton, Grid, TextField, Box
@@ -5,14 +6,41 @@ import {
 import { Visibility, Edit, Delete, Search } from '@mui/icons-material';
 
 
-const users = [
-    { id: 'HV00075', name: 'Hieu Nguyen', phone: '0898662613', email: 'nhockpro445@gmail.com', gender: 'Nữ', status: 'Đang hoạt động', educationStatus: 'Mới' },
-    { id: 'HV00075', name: 'Hieu Nguyen', phone: '0898662613', email: 'nhockpro445@gmail.com', gender: 'Nữ', status: 'Đang hoạt động', educationStatus: 'Mới' },
-    { id: 'HV00075', name: 'Hieu Nguyen', phone: '0898662613', email: 'nhockpro445@gmail.com', gender: 'Nữ', status: 'Đang hoạt động', educationStatus: 'Mới' },
-    // Add more user data here
-];
-
 const UserTable = () => {
+    const [users, setUsers] = React.useState([]);
+
+    React.useEffect(() => {
+        const fetchUsers = async () => {
+            const token = '7c3afb790462432d924aef3f79a90b22';
+            const wsFunction = 'core_user_get_users';
+            const moodleWsRestFormat = 'json';
+            const url = `https://learn.s4h.edu.vn/webservice/rest/server.php?wstoken=${token}&wsfunction=${wsFunction}&moodlewsrestformat=${moodleWsRestFormat}`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        criteria: [{ key: 'email', value: '%' }]
+                    }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const data = await response.json();
+                setUsers(data.users);
+            } catch (error) {
+                console.error('Error fetching users:', error);
+            }
+        };
+
+        fetchUsers();
+    }, []);
+
     return (
         <>
             <Box sx={{backgroundColor: 'white', borderRadius: 2, p: 2, boxShadow: 2, mt: 4, minWidth: '90%', width: 'calc(100% - 70px)', minHeight: '100%', height: '800px', mx: 'auto', marginLeft: '20px'}}>
@@ -53,7 +81,7 @@ const UserTable = () => {
                         <TableBody>
                             {users.map((user) => (
                                 <TableRow key={user.id}>
-                                    <TableCell>{user.name}<br />{user.id}</TableCell>
+                                    <TableCell>{user.fullname}<br />{user.id}</TableCell>
                                     <TableCell>Điện thoại: {user.phone}<br />Email: {user.email}</TableCell>
                                     <TableCell>{user.gender}</TableCell>
                                     <TableCell>{user.status}</TableCell>

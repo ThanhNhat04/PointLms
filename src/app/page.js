@@ -1,306 +1,168 @@
-'use client';
+"use client"
 
-import { useState, useEffect } from 'react';
-import { Typography, Button, Box, TextField, Select, MenuItem, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Checkbox, Grid } from '@mui/material';
-import { Token } from '@mui/icons-material';
+import { Grid, Card, CardContent, CardMedia, Tabs, Tab, Box, Typography, Dialog, DialogContent, DialogTitle, IconButton } from '@mui/material';
+import { useState, useEffect, memo } from 'react';
+import { useMediaQuery, useTheme } from '@mui/material';
+import LazyLoad from 'react-lazyload';
+import CloseIcon from '@mui/icons-material/Close';
+import CourseContent from '@/components/UI/(All)/courseContent';
 
-const TOKEN = '7c3afb790462432d924aef3f79a90b22';
+const CourseDialog = ({ open, handleClose, course }) => (
+    <Dialog fullScreen open={open} onClose={handleClose}>
+        <DialogTitle>
+            {course.displayname}
+            <IconButton
+                edge="end"
+                color="inherit"
+                onClick={handleClose}
+                aria-label="close"
+                sx={{ position: 'absolute', right: 35, top: 8 }}
+            >
+                <CloseIcon />
+            </IconButton>
+        </DialogTitle>
+        <DialogContent>
+            <CourseContent courseId={course.id} />
+        </DialogContent>
+    </Dialog>
+);
 
-async function findAssignment(courseid) {
-  let url = 'https://learn.s4h.edu.vn/webservice/rest/server.php';
-  url += '?moodlewsrestformat=json';
-  url += '&wstoken=' + TOKEN;
-  url += '&wsfunction=mod_assign_get_assignments';
-  url += '&courseids[0]=' + courseid;
-  let response = await fetch(url, {
-    method: 'POST',
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  });
-  let json = await response.json();
-  let course = json.courses[0];
-  return course.assignments;
-}
+const CourseCard = memo(({ course }) => {
+    const [open, setOpen] = useState(false);
+    const [randomStudents, setRandomStudents] = useState(() => Math.floor(Math.random() * (35 - 10 + 1)) + 10);
 
-async function findSubmissions(ids) {
-  let url = 'https://learn.s4h.edu.vn/webservice/rest/server.php';
-  url += '?moodlewsrestformat=json';
-  url += '&wstoken=' + TOKEN;
-  url += '&wsfunction=mod_assign_get_submissions';
-  for (let i = 0; i < ids.length; i++) {
-    let id = ids[i];
-    url += `&assignmentids[${i}]=${id}`;
-  }
-  let response = await fetch(url, {
-    method: 'POST',
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  });
-  let json = await response.json();
-  let assignments = json.assignments;
-  let submissions = [];
-  assignments.forEach(assignment => {
-    assignment.submissions.forEach(submission => {
-      let file = submission.plugins
-        .find(plugin => plugin.type == 'file')
-        .fileareas[0].files[0];
-      submissions.push({ ...file, userid: submission.userid, assignmentid: assignment.assignmentid });
-    });
-  });
-  return submissions;
-}
+    const handleClickOpen = () => {
+        setOpen(true);
+    };
 
-async function getUsersInfo(userIds) {
-  let url = 'https://learn.s4h.edu.vn/webservice/rest/server.php';
-  url += '?moodlewsrestformat=json';
-  url += '&wstoken=' + TOKEN;
-  url += '&wsfunction=core_user_get_users_by_field';
-  url += '&field=id';
-  userIds.forEach((id, index) => {
-    url += `&values[${index}]=${id}`;
-  });
-  let response = await fetch(url, {
-    method: 'POST',
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  });
-  return await response.json();
-}
+    const handleClose = () => {
+        setOpen(false);
+    };
 
+    <CourseContent courseId={course.id} />
 
-export default function LessonPath() {
-  const [assignments, setAssignments] = useState([]);
-  const [submissions, setSubmissions] = useState([]);
-  const [selectedAssignmentId, setSelectedAssignmentId] = useState('');
-  const [userMap, setUserMap] = useState({});
-  const [assignmentMap, setAssignmentMap] = useState({});
-  const [fieldText, setFieldText] = useState('');
-  const [output, setOutput] = useState('');
+    return (
+        <>
+            <Grid item xs={12} sm={6} md={3} sx={{ padding: 0 }} onClick={handleClickOpen}>
+                <Card sx={{ maxWidth: 400, maxHeight: 400, position: 'relative', margin: 'auto', padding: 0 }}>
+                    <LazyLoad height={180} offset={100}>
+                        <CardMedia
+                            component="img"
+                            sx={{ height: 180 }}
+                            image={course.overviewfiles?.[0]?.fileurl
+                                ? course.overviewfiles[0].fileurl + '?token=7c3afb790462432d924aef3f79a90b22'
+                                : 'https://img.freepik.com/free-vector/paper-style-white-monochrome-background_23-2149009213.jpg'}
+                            alt="Lập trình thiết bị di động"
+                        />
+                    </LazyLoad>
+                    <Box
+                        sx={{
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: '0 0 4px 0',
+                        }}
+                    >
+                        Đang diễn ra
+                    </Box>
+                    <CardContent sx={{ minHeight: 100, overflow: 'auto' }}>
+                        <Typography>{course.displayname}</Typography>
+                        <Typography variant="body2" color="textSecondary">
+                            {/* {new Date(course.startdate * 1000).toLocaleDateString()} - {new Date(course.enddate * 1000).toLocaleDateString()} */}
+                        </Typography>
+                        {/* <Typography variant="body2">
+                            Đã học: 2 / 25 buổi
+                        </Typography> */}
+                        <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                            <span role="img" aria-label="students">👥</span> {randomStudents}/ 40
+                        </Typography>
+                    </CardContent>
+                </Card>
+            </Grid>
 
-  const readFileUrl = async (url) => {
-    try {
-      const response = await fetch('/api/getDocUrl', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+            <CourseDialog open={open} handleClose={handleClose} course={course} />
+        </>
+    );
+});
+
+export default function CourseManager() {
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+    const [value, setValue] = useState(0);
+    const [courses, setCourses] = useState([]);
+
+    const handleChange = (event, newValue) => {
+        setValue(newValue);
+    };
+    const tabStyle = {
+        border: 1, borderColor: 'divider', borderRadius: 1, mr: 1.5, ml: 1.5, backgroundColor: 'lightgray', padding: '1px 8px', minWidth: 'auto', fontSize: '0.875rem', height: '10px',
+        '&.Mui-selected': {
+            color: 'white',
+            backgroundColor: 'blue',
         },
-        body: JSON.stringify({ fileUrl: url }),
-      });
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      return data.text
-    } catch (error) {
-      console.error('Error reading file:', error);
-    }
-  };
+    };
 
-  const handleSubmit = async () => {
-    try {
-      const validSubmissions = submissions.filter(submission =>
-        submission.fileurl &&
-        submission.userid &&
-        (submission.filename.endsWith('.doc') || submission.filename.endsWith('.docx'))
-      );
-      const fileUrls = validSubmissions.map(submission => submission.fileurl);
-      const userIds = validSubmissions.map(submission => submission.userid);
-      if (fileUrls.length === 0) return;
+    useEffect(() => {
+        const fetchCourses = async () => {
+            const token = '7c3afb790462432d924aef3f79a90b22';
+            const wsFunction = 'core_course_get_courses_by_field';
+            const moodleWsRestFormat = 'json';
+            const url = `https://learn.s4h.edu.vn/webservice/rest/server.php?wstoken=${token}&wsfunction=${wsFunction}&moodlewsrestformat=${moodleWsRestFormat}`;
 
-      const responses = [];
-      for (let i = 0; i < fileUrls.length; i++) {
-        let fileDocUrl = await readFileUrl(fileUrls[i] + '?token=' + "7c3afb790462432d924aef3f79a90b22");
-        let prompt = `Nội dung cần chấm:
-        ${fileDocUrl}
-        Theo các yêu cầu như sau: ${fieldText}`;
-        let response = await fetch('/api/gemini', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ body: prompt }),
-        });
-        if (!response.ok) {
-          throw new Error('Không có gợi ý từ AI');
-        }
-        const data = await response.json();
-        if (data) {
-          responses.push(data);
-        }
-        // Thêm delay từ 7 đến 10 giây sau khi nhận được phản hồi
-        await new Promise(resolve => setTimeout(resolve, Math.random() * 3000 + 7000));
-      }
-      responses.forEach((data, index) => {
-        const output = data.output || 'Không có gợi ý từ AI';
-        setOutput(prevOutput => ({
-          ...prevOutput,
-          [userIds[index]]: output
-        }));
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  };
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                setCourses(data.courses);
+            } catch (error) {
+                console.error('Error fetching courses:', error);
+            }
+        };
 
-  const handleFieldTextChange = (event) => {
-    setFieldText(event.target.value);
-  };
+        fetchCourses();
+    }, []);
 
-  useEffect(() => {
-    async function fetchData() {
-      const courseid = 30;
-      const assignments = await findAssignment(courseid);
-      const assignmentMap = {};
-      assignments.forEach(assignment => {
-        assignmentMap[assignment.id] = assignment.name;
-      });
-      setAssignmentMap(assignmentMap);
-      setAssignments(assignments);
+    return (
+        <>
+            <Box
+                sx={{
+                    backgroundColor: 'white',
+                    borderRadius: 2,
+                    p: 2,
+                    boxShadow: 2,
+                    mt: 4,
+                    minWidth: isSmallScreen ? '90%' : '10%',
+                    width: isSmallScreen ? '100%' : 'calc(100% - 70px)',
+                    minHeight: '800px',
+                    height: "auto",
+                    mx: 'auto',
+                    marginLeft: '20px'
+                }}
+            >
+                <div style={{ paddingLeft: isSmallScreen ? '8px' : '16px' }}>
+                    <Tabs
+                        value={value}
+                        onChange={handleChange}
+                        aria-label="course tabs"
+                        sx={{ mb: 3, minHeight: '32px' }}
+                    >
+                        <Tab label={`Tất cả (${courses.length})`} sx={{ ...tabStyle, minHeight: '32px', height: '32px' }} />
+                        <Tab label="Đang diễn ra (11)" sx={{ ...tabStyle, minHeight: '32px', height: '32px' }} />
+                        <Tab label="Kết thúc (14)" sx={{ ...tabStyle, minHeight: '32px', height: '32px' }} />
+                    </Tabs>
+                </div>
 
-      const assignmentids = assignments.map(assignment => assignment.id);
-      const submissions = await findSubmissions(assignmentids);
-      const userIds = [...new Set(submissions.map(submission => submission.userid))];
-      const userInfos = await getUsersInfo(userIds);
-      const userMap = {};
-      userInfos.forEach(userInfo => {
-        userMap[userInfo.id] = userInfo;
-      });
-      setUserMap(userMap);
-      setSubmissions(submissions);
-    }
-    fetchData();
-  }, []);
-
-
-  const handleAssignmentChange = (event) => {
-    setSelectedAssignmentId(event.target.value);
-  };
-
-
-  const renderTable = (filteredSubmissions) => {
-    return filteredSubmissions.map(submission => {
-      if (submission && submission.fileurl && submission.filename && submission.userid) {
-        if (submission.filename.endsWith('.docx') || submission.filename.endsWith('.doc')) {
-          const { fileurl, filename, userid, assignmentid } = submission;
-          const userInfo = userMap[userid];
-          const { firstname, lastname, email } = userInfo;
-          const assignmentName = assignmentMap[assignmentid];
-          return (
-            <TableRow key={`${userid}-${assignmentid}`}>
-              <TableCell><Checkbox /></TableCell>
-              <TableCell>{`${firstname} ${lastname}`}</TableCell>
-              <TableCell>{email}</TableCell>
-              <TableCell>{assignmentName}</TableCell>
-              <TableCell><a href={`${fileurl}?token=${TOKEN}`}>{filename}</a></TableCell>
-              <TableCell>
-                <TextField
-                  id={`comment-${userid}`}
-                  variant="outlined"
-                  fullWidth
-                  multiline
-                  rows={3}
-                  sx={{ width: '300px' }}
-                  value={output[userid] || ''} // Sử dụng value thay vì defaultValue
-                />
-              </TableCell>
-            </TableRow>
-          );
-        }
-      }
-      return null;
-    });
-  };
-
-
-
-
-  return (
-    <>
-      {/* <Box sx={{ backgroundColor: 'white', borderRadius: 2, p: 2, boxShadow: 2, mt: 4, minWidth: '10%', width: 'calc(100% - 70px)', minHeight: '800px', height: "auto", mx: 'auto', marginLeft: '20px' }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-          <Box sx={{ backgroundColor: '#f06292', borderRadius: 2, p: 2, width: '30%', color: 'white' }}>
-            <Typography variant="h6">Bài tập chưa được chấm</Typography>
-            <Typography variant="body1">An toàn nơi làm việc</Typography>
-            <Typography variant="h4">1</Typography>
-          </Box>
-          <Box sx={{ backgroundColor: '#ba68c8', borderRadius: 2, p: 2, width: '30%', color: 'white' }}>
-          </Box>
-          <Box sx={{ backgroundColor: '#4fc3f7', borderRadius: 2, p: 2, width: '30%', color: 'white' }}>
-          </Box>
-        </Box>
-      </Box> */}
-
-      {/* P1- Bảng nhập tiêu chí */}
-
-      <Box sx={{ backgroundColor: 'white', borderRadius: 2, p: 2, boxShadow: 2, mt: 4, minWidth: '10%', width: 'calc(100% - 70px)', minHeight: '100px', height: "auto", mx: 'auto', marginLeft: '20px', display: 'flex', }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-          <TextField
-            label="Nhập tiêu chí"
-            variant="outlined"
-            fullWidth
-            multiline
-            rows={14}
-            sx={{ mb: 2, width: '500px', height: '350px' }}
-            value={fieldText}
-            onChange={handleFieldTextChange}
-          />
-          <Button variant="contained" color="primary" onClick={handleSubmit}>
-            Chấm điểm
-          </Button>
-        </Box>
-
-        <Box sx={{ display: 'flex', flexDirection: 'space-between', w: "100%", flex: 1, height: 'max-content' }}>
-          <Box sx={{ backgroundColor: '#f06292', borderRadius: 2, p: 2, width: '100%', color: 'white' }}>
-            <Typography variant="h6">Bài tập chưa được chấm</Typography>
-            <Typography variant="body1">An toàn nơi làm việc</Typography>
-            <Typography variant="h4">1</Typography>
-          </Box>
-          <Box sx={{ backgroundColor: '#ba68c8', borderRadius: 2, p: 2, width: '100%', color: 'white' }}>
-          </Box>
-          <Box sx={{ backgroundColor: '#4fc3f7', borderRadius: 2, p: 2, width: '100%', color: 'white' }}>
-          </Box>
-        </Box>
-      </Box>
-
-      {/*P2- Bảng chọn bài tập */}
-
-      <Box sx={{ backgroundColor: 'white', borderRadius: 2, p: 2, boxShadow: 2, mt: 4, minWidth: '10%', width: 'calc(100% - 70px)', minHeight: '800px', height: "auto", mx: 'auto', marginLeft: '20px' }}>
-        <Box sx={{ mt: 1, mb: 2, display: 'flex', alignItems: 'center' }}>
-          <Typography variant="h6" sx={{ mr: 1, }}>Chọn bài tập:</Typography>
-          <Select
-            value={selectedAssignmentId}
-            onChange={handleAssignmentChange}
-            displayEmpty
-            sx={{ backgroundColor: '#f5f5f5', borderRadius: '4px', width: '300px', height: '30px' }}
-          >
-            <MenuItem value="">Tất cả</MenuItem>
-            {assignments.map(assignment => (
-              <MenuItem key={assignment.id} value={assignment.id}>
-                {assignment.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </Box>
-
-        {/* P3- Bảng chấm điểm */}
-
-        <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell sx={{ maxWidth: '1px' }}><Checkbox /></TableCell>
-                <TableCell sx={{ fontWeight: 'bold', maxWidth: '150px' }}>TÊN SINH VIÊN</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', maxWidth: '200px' }}>EMAIL</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', maxWidth: '200px' }}>BÀI TẬP</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', maxWidth: '150px' }}>FIlE BÀI TẬP</TableCell>
-                <TableCell sx={{ fontWeight: 'bold', maxWidth: '200px' }}>NHẬN XÉT</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {renderTable(submissions.filter(submission => selectedAssignmentId ? submission.assignmentid == selectedAssignmentId : true))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Box>
-    </>
-  );
+                <Grid container spacing={3} justifyContent="center">
+                    {courses.map((course, index) => (
+                        <CourseCard key={index} course={course} />
+                    ))}
+                </Grid>
+            </Box>
+        </>
+    );
 }
-
-

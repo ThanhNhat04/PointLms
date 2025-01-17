@@ -15,15 +15,9 @@ export default function SideBar({ data }) {
 
   let path = {
     "/": "Trang chủ",
-    // "/statistics": "Thống kê",
-    "/coursemanager": "Quản lý khóa học",
-    "/user": "Quản lý học viên",
+    "/pointManager": "Quản lý điểm",
+    // "/user": "Quản lý học viên",
   }
-
-  // if (data.Role == 'Quản lý') path['/personnel'] = "Nhân sự"
-  // path["/setting"] = "Cài đặt"
-  // path["/progress"] = "Hướng dẫn"
-
 
   const [expanded, setExpanded] = useState(false);
   const pathname = usePathname();

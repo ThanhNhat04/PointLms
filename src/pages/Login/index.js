@@ -36,7 +36,7 @@ export default function Login() {
 
         window.location.reload()
         setIsLoading(false)
-      }
+      }a
     } catch (error) {
       setErrorMessage(`Lỗi: ${error}`);
       setIsLoading(false);

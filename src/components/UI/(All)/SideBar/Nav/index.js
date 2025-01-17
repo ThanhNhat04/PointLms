@@ -13,18 +13,18 @@ export default function Nav({ expanded, text, action }) {
       color: 'iherta',
       transition: 'all .3s ease-out'
     }} />)
-  } else if (action[1] == '/coursemanager') {
+  } else if (action[1] == '/pointManager') {
     icon = (<EventNoteRoundedIcon sx={{
       height: '25px',
       color: 'iherta',
       transition: 'all .3s ease-out'
     }} />)
-  } else if (action[1] == '/user') {
-    icon = (<WorkIcon sx={{
-      height: '25px',
-      color: 'iherta',
-      transition: 'all .3s ease-out'
-    }} />)
+  // } else if (action[1] == '/user') {
+  //   icon = (<WorkIcon sx={{
+  //     height: '25px',
+  //     color: 'iherta',
+  //     transition: 'all .3s ease-out'
+  //   }} />)
   }
 
   // else {
