@@ -15,7 +15,7 @@ export default function SideBar({ data }) {
 
   let path = {
     "/": "Trang chủ",
-    "/pointManager": "Quản lý điểm",
+    "/uploadpages": "Quản lý lớp học",
     // "/user": "Quản lý học viên",
   }
 

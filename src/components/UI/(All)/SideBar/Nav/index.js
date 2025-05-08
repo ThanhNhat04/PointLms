@@ -13,7 +13,7 @@ export default function Nav({ expanded, text, action }) {
       color: 'iherta',
       transition: 'all .3s ease-out'
     }} />)
-  } else if (action[1] == '/pointManager') {
+  } else if (action[1] == '/uploadpages') {
     icon = (<EventNoteRoundedIcon sx={{
       height: '25px',
       color: 'iherta',
