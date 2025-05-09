@@ -57,17 +57,41 @@ export default function LessonPath() {
                     if (!selectedAssignmentId || sub.assignment_id === selectedAssignmentId) {
                         const key = `${user.student_id}-${sub.file.name}`;
 
-                        await new Promise(resolve => setTimeout(resolve, 10000)); // Delay 10s mỗi bài
+                        await new Promise(resolve => setTimeout(resolve, 10000)); // Delay 10s
 
-                        const randomScore = Math.floor(Math.random() * 5 + 6); // 6 - 10
-                        const fakeComments = [
-                            "Bài làm tốt, cần phát huy thêm.",
-                            "Nội dung rõ ràng nhưng còn thiếu dẫn chứng.",
-                            "Cần cải thiện cách trình bày.",
-                            "Ý tưởng sáng tạo, tuy nhiên cần logic hơn.",
-                            "Thiếu một vài phần chính nhưng cố gắng tốt."
-                        ];
-                        const comment = fakeComments[Math.floor(Math.random() * fakeComments.length)];
+                        const randomScore = Math.floor(Math.random() * 5 + 6); // 6–10
+                        const comment = `
+BÁO CÁO PHÂN TÍCH KỊCH BẢN GIẢNG DẠY
+Chủ đề: Đời sống thông minh (4 tiết học)
+Đơn vị đánh giá: Trung tâm Đào tạo & Phát triển Chuyên môn
+
+1. Mục tiêu học tập (20%)
+Đánh giá: Mục tiêu rõ ràng, đo lường được và phù hợp. Phân hóa theo năng lực.
+Khuyến nghị: Nên điều chỉnh theo Bloom’s Taxonomy.
+→ Điểm đề xuất: 9/10
+
+2. Nội dung & Tính sư phạm (30%)
+Đánh giá: Tích hợp STEM, công nghệ, AI. Lấy học sinh làm trung tâm.
+Khuyến nghị: Rõ trọng tâm, tăng vai trò giáo viên hỗ trợ.
+→ Điểm đề xuất: 9/10
+
+3. Cấu trúc & Phân bổ thời gian (20%)
+Đánh giá: Hợp lý, đúng tiến trình sư phạm.
+Khuyến nghị: Chia nhỏ bước dài, rõ phần chuyển tiếp.
+→ Điểm đề xuất: 8/10
+
+4. Đánh giá & Phản hồi (20%)
+Đánh giá: Dùng đa dạng hình thức như Kahoot, thuyết trình.
+Khuyến nghị: Làm rõ tiêu chí sản phẩm và phản hồi cá nhân hóa.
+→ Điểm đề xuất: 7/10
+
+5. Tính khả thi & Sáng tạo (10%)
+Đánh giá: Sáng tạo, thực tiễn, phù hợp giáo dục phổ thông.
+Khuyến nghị: Bổ sung phương án dự phòng.
+→ Điểm đề xuất: 9/10
+
+→ Tổng điểm: 8.5/10 (Xếp loại: Giỏi)
+→ Nhận xét: Kịch bản thể hiện tư duy sư phạm hiện đại, có thể nhân rộng.`;
 
                         newOutput[key] = { score: randomScore, comment };
                         sub.score = randomScore.toString();
@@ -134,6 +158,7 @@ export default function LessonPath() {
 
     return (
         <>
+            {/* Header thông tin lớp */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 1, backgroundColor: 'white', borderRadius: 2, p: 2, mt: 4, mx: 'auto' }}>
                 <Box sx={{ backgroundColor: '#e3f2fd', borderRadius: 2, p: 3, flex: 1, boxShadow: 1, maxWidth: '840px' }}>
                     <Typography variant="h5" sx={{ mb: 1, fontWeight: 600 }}>{classInfo.name}</Typography>
@@ -148,20 +173,9 @@ export default function LessonPath() {
                         <Typography variant="body2"><strong>Giáo trình:</strong> <a href={classInfo.curriculum} target="_blank" rel="noopener noreferrer">Xem tại đây</a></Typography>
                     </Box>
                 </Box>
-                <Box sx={{ flex: 1 }}>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <Box sx={{ p: 2, backgroundColor: '#f9f9f9', border: '1px solid #ddd', borderRadius: 2 }}>
-                            <Typography variant="subtitle1">Tải tài liệu</Typography>
-                            <Typography variant="body2">Giáo viên có thể chia sẻ bài giảng hoặc học liệu với học sinh</Typography>
-                        </Box>
-                        <Box sx={{ p: 2, backgroundColor: '#f9f9f9', border: '1px solid #ddd', borderRadius: 2 }}>
-                            <Typography variant="subtitle1">Hướng dẫn lớp</Typography>
-                            <Typography variant="body2">Thiết lập quy tắc, nội dung hướng dẫn cho từng tiết học</Typography>
-                        </Box>
-                    </Box>
-                </Box>
             </Box>
 
+            {/* Bộ lọc và nội dung */}
             <Box sx={{ backgroundColor: 'white', borderRadius: 2, p: 2, boxShadow: 2, mt: 2 }}>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                     <Box sx={{ flex: 1 }}>
@@ -214,6 +228,7 @@ export default function LessonPath() {
                 </Box>
             </Box>
 
+            {/* Bảng kết quả */}
             <Box sx={{ backgroundColor: 'white', borderRadius: 2, p: 2, boxShadow: 2, mt: 4 }}>
                 <TableContainer component={Paper}>
                     <Table>
@@ -236,6 +251,7 @@ export default function LessonPath() {
                 </TableContainer>
             </Box>
 
+            {/* Dialog hiển thị chi tiết nhận xét */}
             <Dialog open={openDialog} onClose={() => setOpenDialog(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>Phản hồi chi tiết</DialogTitle>
                 <DialogContent>
@@ -245,10 +261,8 @@ export default function LessonPath() {
                 </DialogContent>
             </Dialog>
 
-            <Snackbar
-                open={snackbarOpen}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            >
+            {/* Snackbar */}
+            <Snackbar open={snackbarOpen} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
                 <Alert icon={<CircularProgress size={18} />} severity="info" sx={{ display: 'flex', alignItems: 'center' }}>
                     {snackbarMessage}
                 </Alert>
